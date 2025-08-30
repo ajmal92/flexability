@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>Patient Information</h3>
+                <a href="{% url 'patient-weekly-schedule-list' patient_id=patient.id %}"
+                   class="btn btn-sm btn-primary">
+                    <i class="fas fa-calendar-alt"></i> View Schedules
+                </a>
+                {% if request.user.is_superuser or request.user.branch_admin %}
+                <a href="{% url 'consultation-create' patient.id %}?type=initial"
+                   class="btn btn-success btn-sm">
+                    <i class="fas fa-plus"></i> New Consultation
+                </a>
+                {% endif %}
+                <a href="{% url 'patient-treatment-create' patient.id %}?type=initial"
+                   class="btn btn-success btn-sm">
+                    <i class="fas fa-plus"></i> Assign Treatment Plan
+                </a>
+            </div>
+            <div class="card-body">
+                <p><strong>{{ patient.first_name }} {{ patient.last_name }}</strong></p>
+                <p><strong>Age:</strong> {{ patient.age }} years</p>
+                <p><strong>Date of Birth:</strong> {{ patient.date_of_birth }}</p>
+                <p><strong>Gender:</strong> {{ patient.get_gender_display }}</p>
+                <p><strong>Address:</strong> {{ patient.address }}</p>
+                <p><strong>Phone:</strong> {{ patient.phone }}</p>
+                <p><strong>Email:</strong> {{ patient.email|default:"-" }}</p>
+                <p><strong>Emergency Contact:</strong> {{ patient.emergency_contact|default:"-" }}</p>
+                <p><strong>Emergency Phone:</strong> {{ patient.emergency_phone|default:"-" }}</p>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3>Medical Information</h3>
+            </div>
+            <div class="card-body">
+                <p><strong>Medical History:</strong></p>
+                <p>{{ patient.medical_history|default:"None provided"|linebreaks }}</p>
+
+                <p><strong>Allergies:</strong></p>
+                <p>{{ patient.allergies|default:"None"|linebreaks }}</p>
+
+                <p><strong>Current Medications:</strong></p>
+                <p>{{ patient.current_medications|default:"None"|linebreaks }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <!-- Invoices Card -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3>Invoices</h3>
+
+            </div>
+            <div class="card-body">
+                {% if invoices %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in invoices %}
+                            <tr>
+                                <td>{{ invoice.invoice_number|default:invoice.id }}</td>
+                                <td>{{ invoice.invoice_date|date:"M d, Y" }}</td>
+                                <td>₹{{ invoice.total|floatformat:2 }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if invoice.status == 'paid' %}bg-success
+                                        {% elif invoice.status == 'partially_paid' %}bg-warning
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ invoice.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'invoice-detail' invoice.id %}"
+                                       class="btn btn-sm btn-info" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+
+                                    {% if not invoice.is_paid %}
+                                    <a href="{% url 'create_payment' invoice.id %}"
+                                       class="btn btn-sm btn-success" title="Add Payment">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No invoices found for this patient.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Attachments Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Attachments</h3>
+                {% if not request.user.doctor_profile %}
+                <a href="{% url 'add_patient_attachment' patient_id=patient.id %}"
+                   class="btn btn-sm btn-primary">
+                    <i class="fas fa-upload"></i> Upload Attachments
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <h4>Existing Attachments</h4>
+                <ul class="list-group">
+                    {% for attachment in attachments %}
+                    <li class="list-group-item">
+                        <a href="{% url 'download_attachment' attachment.id %}">{{ attachment.title }}</a>
+                        <span class="attachment-actions">
+                            <a href="{% url 'edit_patient_attachment' attachment.id %}"
+                               class="btn btn-sm btn-outline-warning">Edit</a>
+                            <a href="{% url 'delete_patient_attachment' attachment.id %}"
+                               class="btn btn-sm btn-outline-danger">Delete</a>
+                        </span>
+                        {% if attachment.description %}
+                        <p class="mt-1">{{ attachment.description }}</p>
+                        {% endif %}
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item">No attachments yet</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

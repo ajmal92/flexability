@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Stats Section -->
+    <div class="row mb-4">
+        <!-- Treatment Stats Column -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-procedures me-2"></i>Treatment Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="stat-card">
+                                <h6>Total Sessions</h6>
+                                <h2 class="text-primary">{{ stats.total_sessions }}</h2>
+                                <small class="text-muted">All time</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="stat-card">
+                                <h6>This Month</h6>
+                                <h2 class="text-success">{{ stats.monthly_sessions }}</h2>
+                                <small class="text-muted">Completed</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="stat-card">
+                                <h6>Today</h6>
+                                <h2 class="text-info">{{ stats.todays_completed }}</h2>
+                                <small class="text-muted">{{ stats.scheduled_today }} scheduled</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="stat-card">
+                                <h6>Assigned Patients</h6>
+                                <h2 class="text-warning">{{ stats.assigned_patients }}</h2>
+                                <small class="text-muted">Under care</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consultation Stats Column -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-stethoscope me-2"></i>Consultation Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="stat-card">
+                                <h6>Total Consults</h6>
+                                <h2 class="text-primary">{{ stats.total_consultations }}</h2>
+                                <small class="text-muted">All time</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="stat-card">
+                                <h6>This Month</h6>
+                                <h2 class="text-success">{{ stats.monthly_consultations }}</h2>
+                                <small class="text-muted">Completed</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="stat-card">
+                                <h6>Today</h6>
+                                <h2 class="text-info">{{ stats.todays_completed_consultations }}</h2>
+                                <small class="text-muted">{{ stats.scheduled_consultations_today }} scheduled</small>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Column -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <button class="btn btn-primary mb-2 py-3"
+                            data-bs-toggle="modal"
+                            data-bs-target="#attendanceModal"
+                            data-url="{% url 'mark_attendance' %}">
+                        <i class="fas fa-procedures me-2"></i> Record Treatment Session
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Schedule Section -->
+    <div class="row mb-4">
+        <!-- Today's Treatments -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-calendar-day me-2"></i>Today's Treatment Schedule</h5>
+                    <span class="badge bg-primary">{{ todays_sessions|length }} sessions</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in todays_sessions %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'patient-detail' session.treatment.patient.id %}" class="text-decoration-none">
+                                            {{ session.treatment.patient }}
+                                        </a>
+                                    </td>
+                                    <td>{{ session.start_time|time:"H:i" }} - {{ session.end_time|time:"H:i" }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if session.status == 'completed' %}success{% elif session.status == 'cancelled' %}danger{% elif session.status == 'no_show' %}warning{% else %}info{% endif %}">
+                                            {{ session.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if session.status == 'scheduled' %}
+                                        <button class="btn btn-sm btn-success mark-attendance-btn"
+                                                data-url="{% url 'mark_attendance' session.id %}"
+                                                data-bs-target="#attendanceModal">
+                                            <i class="fas fa-check"></i> Complete
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">No treatment sessions scheduled for today</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Consultations -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-user-md me-2"></i>Today's Consultations</h5>
+                    <span class="badge bg-success">{{ todays_consultations|length }} consultations</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in todays_consultations %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'patient-detail' session.patient.id %}" class="text-decoration-none">
+                                            {{ session.patient }}
+                                        </a>
+                                    </td>
+                                    <td>{{ session.start_time|time:"H:i" }} - {{ session.end_time|time:"H:i" }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if session.status == 'completed' %}success{% elif session.status == 'cancelled' %}danger{% elif session.status == 'no_show' %}warning{% else %}info{% endif %}">
+                                            {{ session.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if session.status == 'scheduled' %}
+                                        <a class="btn btn-sm btn-success"
+                                           href="{% url 'consultation-update' session.id %}">
+                                            <i class="fas fa-check"></i> Complete
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">No consultations scheduled for today</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for session in recent_sessions %}
+                        <div class="timeline-item">
+                            <div class="timeline-badge
+                                {% if session.status == 'completed' %}bg-success
+                                {% elif session.status == 'cancelled' %}bg-danger
+                                {% else %}bg-info{% endif %}">
+                                <i class="fas fa-{% if session.status == 'completed' %}check
+                                    {% elif session.status == 'cancelled' %}times
+                                    {% else %}calendar{% endif %}"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong>{{ session.treatment.patient }}</strong>
+                                        <span class="text-muted ms-2">{{ session.get_status_display }}</span>
+                                    </div>
+                                    <small class="text-muted">{{ session.date }} | {{ session.start_time|time:"H:i" }}</small>
+                                </div>
+                                <p class="mb-0 small text-muted">
+                                    {{ session.treatment.treatment_type }} session
+                                    {% if session.assessment_notes %}- {{ session.assessment_notes|truncatechars:60 }}{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-center text-muted">No recent activity</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Structure -->
+<div class="modal fade" id="attendanceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- AJAX content loads here -->
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+$(document).ready(function() {
+  // Handle treatment session modal opening
+  $('[data-bs-target="#attendanceModal"]').click(function() {
+    var url = $(this).data('url');
+    $('#attendanceModal .modal-content').load(url);
+  });
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        text-align: center;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        height: 100%;
+    }
+    .stat-card h6 {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 5px;
+    }
+    .stat-card h2 {
+        margin: 5px 0;
+        font-weight: 600;
+    }
+    .stat-card small {
+        font-size: 0.8rem;
+    }
+    .timeline {
+        position: relative;
+        padding-left: 40px;
+    }
+    .timeline-item {
+        position: relative;
+        padding-bottom: 20px;
+    }
+    .timeline-badge {
+        position: absolute;
+        left: -40px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+    .timeline-content {
+        padding: 10px 15px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+    }
+    .table thead th {
+        border-bottom: 2px solid #dee2e6;
+    }
+    .card-header {
+        border-bottom: 1px solid rgba(0,0,0,.125);
+    }
+</style>
+{% endblock %}

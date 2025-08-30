@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Session Details</h3>
+        <div>
+            <a href="{% url 'treatment-session-edit' object.id %}" class="btn btn-warning me-2">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <a href="{% url 'treatment-session-list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Session Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Patient:</strong> {{ object.treatment.patient }}</p>
+                            <p><strong>Type:</strong> {{ object.get_session_type_display }}</p>
+                            {% if object.treatment %}
+                            <p><strong>Treatment Program:</strong> {{ object.treatment.treatment_program.name }}</p>
+                            {% endif %}
+                            <p><strong>Branch:</strong> {{ object.treatment.treatment_program.branch }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Date:</strong> {{ object.date|date:"d M Y" }}</p>
+                            <p><strong>Time:</strong> {{ object.start_time|time:"H:i" }} - {{ object.end_time|time:"H:i" }}</p>
+                            <p>
+                                <strong>Status:</strong>
+                                <span class="badge bg-{% if object.status == 'completed' %}success{% elif object.status == 'cancelled' %}danger{% elif object.status == 'no_show' %}warning{% else %}info{% endif %}">
+                                    {{ object.get_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Doctor Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Treatment Doctor:</strong> Dr. {{ object.treatment_doctor.user.name }}</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Assessment Notes</h5>
+                </div>
+                <div class="card-body">
+                    {% if object.assessment_notes %}
+                        {{ object.assessment_notes|linebreaks }}
+                    {% else %}
+                        <p class="text-muted">No assessment notes available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Financial Information</h5>
+                </div>
+                <div class="card-body">
+                    {% if object.session_type == 'consultation' %}
+                        <p><strong>Consultation Fee:</strong> ₹{{ object.consultation_fee }}</p>
+                    {% else %}
+                        <p><strong>Session Rate:</strong> ₹{{ object.treatment.session_rate }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Session Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'treatment-session-delete' object.id %}" class="btn btn-danger w-100 mb-2">
+                        <i class="bi bi-trash"></i> Delete Session
+                    </a>
+                    {% if object.status != 'completed' %}
+                    <a href="#" class="btn btn-success w-100">
+                        <i class="bi bi-check-circle"></i> Mark as Completed
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

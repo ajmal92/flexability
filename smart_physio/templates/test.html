@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Select2 Test</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+</head>
+<body>
+    <select id="id_patient" style="width: 300px"></select>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+    <script>
+    $(document).ready(function() {
+        $('#id_patient').select2({
+            ajax: {
+                url: '/patient-autocomplete/',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return { q: params.term };
+                },
+                processResults: function(data) {
+                    return { results: data.results };
+                }
+            },
+            minimumInputLength: 2,
+            placeholder: "Search for a patient..."
+        });
+    });
+    </script>
+</body>
+</html>

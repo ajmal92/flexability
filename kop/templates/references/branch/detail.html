@@ -1,0 +1,24 @@
+{% extends 'detail_base.html' %}
+
+{% block title %}Branch Details{% endblock %}
+
+{% block content %}
+<h3>Branch Details</h3>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">{{ object.name }}</h5>
+        <p class="card-text">{{ object.description|default:"No description" }}</p>
+        <p class="card-text">{{ object.address|default:"No address" }}</p>
+        <p class="card-text">{{ object.email|default:"No address" }}</p>
+        <p class="card-text">{{ object.phone_number|default:"No address" }}</p>
+        <p>Status: {% if object.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</p>
+
+        <div class="mt-4">
+            <a href="{% url 'branch-update' object.pk %}" class="btn btn-warning">Edit</a>
+            <a href="{% url 'branch-delete' object.pk %}" class="btn btn-danger">Delete</a>
+            <a href="{% url 'branch-list' %}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

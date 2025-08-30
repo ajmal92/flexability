@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h4>{% if form.instance.pk %}Edit{% else %}Assign{% endif %} Treatment Program</h4>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.patient.id_for_label }}" class="form-label">Patient</label>
+                    {{ form.patient }}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.treatment_program.id_for_label }}" class="form-label">Treatment Program</label>
+                    {{ form.treatment_program }}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.doctor.id_for_label }}" class="form-label">Assigned Doctor</label>
+                    {{ form.doctor }}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ form.total_sessions.id_for_label }}" class="form-label">Total Sessions</label>
+                    {{ form.total_sessions }}
+                </div>
+                {% if not request.user.doctor_profile %}
+                <div class="col-md-3">
+                    <label for="{{ form.session_rate.id_for_label }}" class="form-label">Session Rate (₹)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        {{ form.session_rate }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="{{ form.end_date.id_for_label }}" class="form-label">End Date</label>
+                    {{ form.end_date }}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                    {{ form.status }}
+                </div>
+                <div class="col-md-3">
+                    <div class="d-flex flex-column">
+                        <label class="form-label">Calculated Values</label>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-primary">Completed: {{ form.instance.sessions_completed }}</span>
+                            <span class="badge bg-warning">
+                                Pending: {{ form.instance.pending_sessions|default:"0" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+                {{ form.notes }}
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <a href="{% url 'patient-treatment-list' %}"
+                   class="btn btn-secondary me-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update session rate when treatment program changes
+    const treatmentProgramSelect = document.getElementById('id_treatment_program');
+    const sessionRateInput = document.getElementById('id_session_rate');
+
+    if (treatmentProgramSelect && sessionRateInput) {
+        treatmentProgramSelect.addEventListener('change', function() {
+            if (!sessionRateInput.value) {
+                // Fetch the rate from the selected program
+                const programId = this.value;
+                if (programId) {
+                    fetch(`/api/treatment-programs/${programId}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            sessionRateInput.value = data.rate_per_session;
+                        });
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

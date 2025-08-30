@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Doctor Specialization Details{% endblock %}
+
+{% block content %}
+<h1>Doctor Specialization Details</h1>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">{{ object.name }}</h5>
+        <p class="card-text">{{ object.description|default:"No description" }}</p>
+
+        <div class="mt-4">
+            <a href="{% url 'doctorspecialization-update' object.pk %}" class="btn btn-warning">Edit</a>
+            <a href="{% url 'doctorspecialization-delete' object.pk %}" class="btn btn-danger">Delete</a>
+            <a href="{% url 'doctorspecialization-list' %}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

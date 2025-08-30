@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Lead Source Details{% endblock %}
+
+{% block content %}
+<h1>Lead Source Details</h1>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">{{ object.name }}</h5>
+        <p class="card-text">{{ object.description|default:"No description" }}</p>
+        <p>Status: {% if object.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</p>
+
+        <div class="mt-4">
+            <a href="{% url 'leadsource-update' object.pk %}" class="btn btn-warning">Edit</a>
+            <a href="{% url 'leadsource-delete' object.pk %}" class="btn btn-danger">Delete</a>
+            <a href="{% url 'leadsource-list' %}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

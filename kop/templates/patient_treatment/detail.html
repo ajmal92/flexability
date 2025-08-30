@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Treatment Details</h3>
+        <div>
+            {% if not request.user.doctor_profile %}
+            <a href="{% url 'patient-treatment-edit' object.id %}" class="btn btn-warning me-2">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+          {% endif  %}
+
+
+            <a href="{% url 'patient-treatment-list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Treatment Info -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Treatment Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Patient:</strong> {{ object.patient }}</p>
+                            <p><strong>Program:</strong> {{ object.treatment_program.name }}</p>
+                            <p><strong>Doctor:</strong> Dr. {{ object.doctor.user.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Start Date:</strong> {{ object.start_date|date:"d M Y" }}</p>
+                            <p><strong>End Date:</strong> {{ object.end_date|date:"d M Y"|default:"-" }}</p>
+                            <p>
+                                <strong>Status:</strong>
+                                <span class="badge bg-{% if object.status == 'completed' %}success{% elif object.status == 'cancelled' %}danger{% else %}info{% endif %}">
+                                    {{ object.get_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session Progress -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Session Progress</h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-3" style="height: 25px;">
+                        <div class="progress-bar bg-success" role="progressbar"
+                             style="width: {% widthratio object.sessions_completed object.total_sessions 100 %}%"
+                             aria-valuenow="{{ object.sessions_completed }}"
+                             aria-valuemin="0"
+                             aria-valuemax="{{ object.total_sessions }}">
+                            {{ object.sessions_completed }}/{{ object.total_sessions }} sessions
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title">Completed</h5>
+                                    <p class="display-6">{{ object.sessions_completed|default:0 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title">Pending</h5>
+                                    <p class="display-6">{{ object.pending_sessions|default:0 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total</h5>
+                                    <p class="display-6">{{ object.total_sessions|default:0 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Financial Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th>Session Rate</th>
+                                    <td>₹{{ object.session_rate }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Total Cost</th>
+                                    <td>₹{{ object.total_cost|default:"0" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Amount Paid</th>
+                                    <td>₹{{ object.amount_paid|default:"0" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Balance Due</th>
+                                    <td>₹{{ object.balance_due|default:"0" }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="col-md-4">
+            <!-- Treatment Notes -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Treatment Notes</h5>
+                </div>
+                <div class="card-body">
+                    {% if object.notes %}
+                        {{ object.notes|linebreaks }}
+                    {% else %}
+                        <p class="text-muted">No notes available</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Sessions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Sessions</h5>
+                </div>
+                <div class="card-body">
+                    {% if sessions %}
+                        <ul class="list-group list-group-flush">
+                            {% for session in sessions %}
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <span>{{ session.date|date:"d M Y" }}</span>
+                                    <span class="badge bg-success">Completed</span>
+                                </div>
+                                <small class="text-muted">Notes: {{ session.notes|truncatechars:30 }}</small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <a href="#" class="btn btn-sm btn-outline-primary mt-3 w-100">View All Sessions</a>
+                    {% else %}
+                        <p class="text-muted">No sessions recorded yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session History -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Session History</h5>
+                <a href="{% url 'treatment-session-create-for-patient' object.id %}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus"></i> Add Session
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in sessions %}
+                        <tr>
+                            <td>{{ session.date|date:"d M Y" }}</td>
+                            <td>
+                                <span class="badge bg-{% if session.status == 'completed' %}success{% else %}warning{% endif %}">
+                                    {{ session.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ session.notes|truncatechars:50 }}</td>
+                            <td>
+                                <a href="{% url 'session-edit' session.id %}" class="btn btn-sm btn-warning">Edit</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">No sessions recorded yet</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

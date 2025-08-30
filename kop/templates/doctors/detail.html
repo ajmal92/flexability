@@ -1,0 +1,104 @@
+{% extends 'detail_base.html' %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h2>Doctor Details</h2>
+    <div>
+      <a href="{% url 'doctor-edit' object.id %}" class="btn btn-warning btn-sm">
+        <i class="fas fa-edit"></i> Edit
+      </a>
+      <a href="{% url 'doctor-list' %}" class="btn btn-secondary btn-sm">
+        <i class="fas fa-arrow-left"></i> Back to List
+      </a>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="detail-item">
+          <span class="detail-label">Name:</span>
+          <span class="detail-value">{{ object.user.name }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Email:</span>
+          <span class="detail-value">{{ object.user.email }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Phone Number:</span>
+          <span class="detail-value">{{ object.phone_number }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">License Number:</span>
+          <span class="detail-value">{{ object.license_number }}</span>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="detail-item">
+          <span class="detail-label">Branch:</span>
+          <span class="detail-value">{{ object.branch.name }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Years of Experience:</span>
+          <span class="detail-value">{{ object.years_of_experience }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Status:</span>
+          <span class="badge bg-{% if object.is_active %}success{% else %}danger{% endif %}">
+            {% if object.is_active %}Active{% else %}Inactive{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-6">
+          <div class="detail-item">
+            <span class="detail-label">Specializations:</span>
+            <div class="detail-value">
+                {% for spec in object.specialization.all %}
+              <span class="badge bg-primary me-1">{{ spec.name }}</span>
+              {% endfor %}
+            </div>
+          </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="detail-item">
+          <span class="detail-label">Address:</span>
+          <span class="detail-value">{{ object.address|default:"Not specified" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional sections can be added here -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="detail-item">
+          <span class="detail-label">Joined:</span>
+          <span class="detail-value">{{ object.user.date_joined|date:"F j, Y" }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .detail-item {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+  }
+  .detail-label {
+    font-weight: 600;
+    color: #6c757d;
+    display: inline-block;
+    min-width: 180px;
+  }
+  .detail-value {
+    color: #212529;
+  }
+</style>
+{% endblock %}

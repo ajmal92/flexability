@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2>{% if form.instance.id %}Edit{% else %}Create{% endif %} Doctor</h2>
+  </div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- Display form errors -->
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}
+        {{ error }}
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label for="email" class="form-label">Email</label>
+          <input class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                 type="email" id="email" name="email" required
+                 value="{{ form.email.value|default:'' }}">
+          {% for error in form.email.errors %}
+          <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="col-md-4">
+          <label for="name" class="form-label">Name</label>
+          <input type="text" class="form-control {% if form.name.errors %}is-invalid{% endif %}"
+                 id="name" name="name" required
+                 value="{{ form.name.value|default:'' }}">
+          {% for error in form.name.errors %}
+          <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="col-md-4">
+          <label for="phone_number" class="form-label">Phone Number</label>
+          <input type="text" class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}"
+                 id="phone_number" name="phone_number"
+                 value="{{ form.phone_number.value|default:'' }}" required>
+          {% for error in form.phone_number.errors %}
+          <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="license_number" class="form-label">License Number</label>
+          <input type="text" class="form-control {% if form.license_number.errors %}is-invalid{% endif %}"
+                 id="license_number" name="license_number"
+                 value="{{ form.license_number.value|default:'' }}" required>
+          {% for error in form.license_number.errors %}
+          <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="col-md-6">
+          <label for="years_of_experience" class="form-label">Years of Experience</label>
+          <input type="number" class="form-control {% if form.years_of_experience.errors %}is-invalid{% endif %}"
+                 id="years_of_experience" name="years_of_experience"
+                 value="{{ form.years_of_experience.value|default:'0' }}" min="0">
+          {% for error in form.years_of_experience.errors %}
+          <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="address" class="form-label">Address</label>
+          <textarea class="form-control {% if form.address.errors %}is-invalid{% endif %}"
+                    id="address" name="address" rows="3">{{ form.address.value|default:'' }}</textarea>
+          {% for error in form.address.errors %}
+          <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="col-md-6">
+          <label for="specialization" class="form-label">Specializations</label>
+          <select class="form-select {% if form.specialization.errors %}is-invalid{% endif %}"
+                  id="specialization" name="specialization" multiple>
+            {% for spec in specializations %}
+            <option value="{{ spec.id }}"
+                    {% if spec.id in form.specialization.value %}selected{% endif %}>
+              {{ spec.name }}
+            </option>
+            {% endfor %}
+          </select>
+          {% for error in form.specialization.errors %}
+          <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="branch" class="form-label">Branch</label>
+          <select class="form-select {% if form.branch.errors %}is-invalid{% endif %}"
+                  id="branch" name="branch">
+            {% for branch in branches %}
+            <option value="{{ branch.id }}"
+                    {% if form.branch.value == branch.id %}selected{% endif %}>
+              {{ branch.name }}
+            </option>
+            {% endfor %}
+          </select>
+          {% for error in form.branch.errors %}
+          <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Status</label>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
+                   {% if form.instance.id and form.instance.is_active or not form.instance.id %}checked{% endif %}>
+            <label class="form-check-label" for="is_active">Active</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        <a href="{% if form.instance.id %}{% url 'doctor-detail' form.instance.id %}{% else %}{% url 'doctor-list' %}{% endif %}"
+           class="btn btn-secondary me-md-2">Cancel</a>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

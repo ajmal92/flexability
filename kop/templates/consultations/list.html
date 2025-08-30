@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Consultations{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Consultations</h3>
+    <a href="{% url 'consultation-create'%}" class="btn btn-primary">Add New</a>
+</div>
+
+<!-- Filter Form -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="id_patient" class="form-label">Patient</label>
+                <input type="text" name="patient" class="form-control" id="id_patient"
+                       value="{{ request.GET.patient }}" placeholder="Search by name">
+            </div>
+            <div class="col-md-2">
+                <label for="id_doctor" class="form-label">Doctor</label>
+                <input type="text" name="doctor" class="form-control" id="id_doctor"
+                       value="{{ request.GET.doctor }}" placeholder="Doctor's last name">
+            </div>
+            <div class="col-md-2">
+                <label for="id_branch" class="form-label">Branch</label>
+                <select name="branch" class="form-select" id="id_branch">
+                    <option value="">All Branches</option>
+                    {% for branch in branches %}
+                    <option value="{{ branch.id }}"
+                        {% if request.GET.branch == branch.id|stringformat:"s" %}selected{% endif %}>
+                        {{ branch.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="id_date" class="form-label">Date</label>
+                <input type="date" name="date" class="form-control" id="id_date"
+                       value="{{ request.GET.date }}">
+            </div>
+            <div class="col-md-2">
+                <label for="id_status" class="form-label">Status</label>
+                <select name="status" class="form-select" id="id_status">
+                    <option value="">All Statuses</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-0.1 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">Filter</button>
+                                <a href="{% url 'consultation-list' %}" class="btn btn-outline-secondary">Reset</a>
+
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- Results Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Doctor</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for consultation in consultations %}
+                    <tr>
+                        <td>{{ consultation.patient }}</td>
+                        <td>Dr. {{ consultation.doctor.user.name }}</td>
+                        <td>{{ consultation.date }}</td>
+                        <td>{{ consultation.start_time|time:"H:i" }} - {{ consultation.end_time|time:"H:i" }}</td>
+                        <td>
+                            <span class="badge bg-{% if consultation.status == 'completed' %}success{% elif consultation.status == 'cancelled' %}danger{% elif consultation.status == 'no_show' %}warning{% else %}info{% endif %}">
+                                {{ consultation.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'consultation-detail' consultation.pk %}" class="btn btn-sm btn-info">View</a>
+                            {% if consultation.status != 'completed' %}
+                            <a href="{% url 'consultation-update' consultation.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="{% url 'consultation-delete' consultation.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No consultations found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">First</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
+            </li>
+        {% endif %}
+
+        <li class="page-item disabled">
+            <span class="page-link">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+        </li>
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h2>Doctors</h2>
+    <a href="{% url 'doctor-create' %}" class="btn btn-primary">Add Doctor</a>
+  </div>
+  <div class="card-body">
+    <!-- Filters -->
+    <form method="get" class="mb-4">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label for="name" class="form-label">Doctor Name</label>
+          <input type="text" class="form-control" id="name" name="name" value="{{ request.GET.name }}">
+        </div>
+        <div class="col-md-4">
+          <label for="branch" class="form-label">Branch</label>
+          <select class="form-select" id="branch" name="branch">
+            <option value="">All Branches</option>
+            {% for branch in branches %}
+            <option value="{{ branch.id }}" {% if request.GET.branch == branch.id|stringformat:"s" %}selected{% endif %}>
+              {{ branch.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label for="specialization" class="form-label">Specialization</label>
+          <select class="form-select" id="specialization" name="specialization">
+            <option value="">All Specializations</option>
+            {% for spec in specializations %}
+            <option value="{{ spec.id }}" {% if request.GET.specialization == spec.id|stringformat:"s" %}selected{% endif %}>
+              {{ spec.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-12">
+          <button type="submit" class="btn btn-primary">Filter</button>
+          <a href="{% url 'doctor-list' %}" class="btn btn-secondary">Reset</a>
+        </div>
+      </div>
+    </form>
+
+    <!-- Doctors Table -->
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>License Number</th>
+            <th>Specializations</th>
+            <th>Branch</th>
+            <th>Experience</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for doctor in doctors %}
+          <tr>
+            <td>{{ doctor.user.name }}</td>
+            <td>{{ doctor.license_number }}</td>
+            <td>
+              {% for spec in doctor.specialization.all %}
+              <span class="badge bg-primary">{{ spec.name }}</span>
+              {% endfor %}
+            </td>
+            <td>{{ doctor.branch.name }}</td>
+            <td>{{ doctor.years_of_experience }} years</td>
+            <td>
+              <a href="{% url 'doctor-edit' doctor.id %}" class="btn btn-sm btn-warning">Edit</a>
+              <a href="{% url 'doctor-detail' doctor.id %}" class="btn btn-sm btn-info">View</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6">No doctors found</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation">
+      <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+        {% else %}
+        <li class="page-item"><a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a></li>
+        {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

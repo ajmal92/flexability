@@ -1,0 +1,151 @@
+
+
+{% extends 'base.html' %}
+{% block head %}
+{{ block.super }}
+{{ form.media }}  <!-- This includes the necessary JS/CSS for autocomplete -->
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3>{% if object %}Update{% else %}Create{% endif %} Consultation</h3>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <div class="row mb-3">
+                <div class="form-group">
+                  <div class="col-md-4">
+                  <label for="id_patient">Patient</label>
+                  {{ form.patient }}
+                  </div>
+              </div>
+              <br/>
+              <p></p>
+                <div class="col-md-4">
+                    {{ form.consultation_type.label_tag }}
+                    {{ form.consultation_type }}
+                    {{ form.consultation_type.errors }}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    {{ form.doctor.label_tag }}
+                    {{ form.doctor }}
+                    {{ form.doctor.errors }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.status.label_tag }}
+                    {{ form.status }}
+                    {{ form.status.errors }}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                  <div class="col-md-4">
+                      {{ form.date.label_tag }}
+                      {{ form.date }}
+                      {{ form.date.errors }}
+                  </div>
+                  <div class="col-md-4">
+                      {{ form.start_time.label_tag }}
+                      {{ form.start_time }}
+                      {{ form.start_time.errors }}
+                  </div>
+                <div class="col-md-4">
+                        {{ form.end_time.label_tag }}
+                        {{ form.end_time }}
+                        {{ form.end_time.errors }}
+                    </div>
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                    {{ form.notes.label_tag }}
+                    {{ form.notes }}
+                    {{ form.notes.errors }}
+                </div>
+
+              </div>
+
+            <div class="row mb-3">
+                  <div class="col-md-6">
+                      {{ form.primary_diagnosis.label_tag }}
+                      {{ form.primary_diagnosis }}
+                      {{ form.primary_diagnosis.errors }}
+                  </div>
+                  <div class="col-md-6">
+                      {{ form.secondary_diagnosis.label_tag }}
+                      {{ form.secondary_diagnosis }}
+                      {{ form.secondary_diagnosis.errors }}
+                  </div>
+
+                </div>
+
+              <div class="row mb-3">
+                <div class="col-md-2">
+                    {{ form.height.label_tag }}
+                    {{ form.height }}
+                    {{ form.height.errors }}
+                </div>
+                <div class="col-md-2">
+                    {{ form.weight.label_tag }}
+                    {{ form.weight }}
+                    {{ form.weight.errors }}
+                </div>
+                <div class="col-md-2">
+                    {{ form.blood_pressure.label_tag }}
+                    {{ form.blood_pressure }}
+                    {{ form.blood_pressure.errors }}
+                </div>
+                <div class="col-md-2">
+                    {{ form.pulse.label_tag }}
+                    {{ form.pulse }}
+                    {{ form.pulse.errors }}
+                </div>
+                <div class="col-md-2">
+                    {{ form.oxygen_saturation.label_tag }}
+                    {{ form.oxygen_saturation }}
+                    {{ form.oxygen_saturation.errors }}
+                </div>
+
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                    {{ form.chief_complaint.label_tag }}
+                    {{ form.chief_complaint }}
+                    {{ form.chief_complaint.errors }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.follow_up_date.label_tag }}
+                    {{ form.follow_up_date }}
+                    {{ form.follow_up_date.errors }}
+                </div>
+
+              </div>
+
+
+
+            <!-- Include other fields similarly -->
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Save</button>
+              {% if form.patient_id %}
+                <a href="{% if object %}{% url 'consultation-detail' object.pk %}{% else %}{% url 'patient-detail' form.patient_id %}{% endif %}"
+                   class="btn btn-secondary">Cancel</a>
+              {% elif object %}
+                <a href="{% if object %}{% url 'consultation-detail' object.pk %}{% endif %}"
+                   class="btn btn-secondary">Cancel</a>
+              {% else %}
+                <a href="{% url 'consultation-list' %}"
+                   class="btn btn-secondary">Cancel</a>
+              {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

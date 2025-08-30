@@ -1,0 +1,198 @@
+<!-- templates/payments/create_payment.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h3>Record Payment for Invoice #{{ invoice.id }}</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Invoice Total:</strong> ₹{{ invoice.total_cost }}<br>
+                    <strong>Invoice Balance:</strong> ₹{{ invoice.balance }}<br>
+                    <strong>Maximum Discount:</strong> ₹<span id="max-discount">{{ invoice.balance }}</span>
+                </div>
+
+                <form method="post" id="payment-form">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.amount.id_for_label }}">Payment Amount *</label>
+                                {{ form.amount }}
+                                {% if form.amount.errors %}
+                                    <div class="text-danger">{{ form.amount.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="discount_amount">Discount Amount (₹)</label>
+                                <input type="number" class="form-control" id="discount_amount" name="discount_amount"
+                                       step="0.01" min="0" max="{{ invoice.balance }}"
+                                       placeholder="Enter discount amount" value="0">
+                                <small class="form-text text-muted">Enter discount in rupees</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="discount_percentage">Discount Percentage (%)</label>
+                                <input type="number" class="form-control" id="discount_percentage"
+                                       step="0.01" min="0" max="100"
+                                       placeholder="Enter discount percentage" value="0">
+                                <small class="form-text text-muted">Enter discount percentage</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="final_amount">Final Amount to Pay</label>
+                                <input type="number" class="form-control" id="final_amount"
+                                       readonly style="background-color: #f8f9fa; font-weight: bold;">
+                                <small class="form-text text-muted">Calculated amount after discount</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.method.id_for_label }}">Payment Method *</label>
+                                {{ form.method }}
+                                {% if form.method.errors %}
+                                    <div class="text-danger">{{ form.method.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.reference.id_for_label }}">Reference Number</label>
+                                {{ form.reference }}
+                                {% if form.reference.errors %}
+                                    <div class="text-danger">{{ form.reference.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.notes.id_for_label }}">Notes</label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="text-danger">{{ form.notes.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Record Payment</button>
+                        <a href="{% url 'invoice-detail' invoice.id %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const invoiceBalance = parseFloat({{ invoice.balance }});
+    const amountInput = document.getElementById('{{ form.amount.id_for_label }}');
+    const discountAmountInput = document.getElementById('discount_amount');
+    const discountPercentageInput = document.getElementById('discount_percentage');
+    const finalAmountInput = document.getElementById('final_amount');
+    const maxDiscountSpan = document.getElementById('max-discount');
+
+    // Function to calculate final amount
+    function calculateFinalAmount() {
+        let discountAmount = parseFloat(discountAmountInput.value) || 0;
+        let discountPercentage = parseFloat(discountPercentageInput.value) || 0;
+
+        // Calculate discount from percentage
+        const discountFromPercentage = (discountPercentage / 100) * invoiceBalance;
+
+        // Use the larger discount value (either amount or percentage-based)
+        let totalDiscount = Math.max(discountAmount, discountFromPercentage);
+
+        // Ensure discount doesn't exceed invoice balance
+        totalDiscount = Math.min(totalDiscount, invoiceBalance);
+
+        // Calculate final amount
+        const finalAmount = invoiceBalance - totalDiscount;
+
+        // Update inputs
+        finalAmountInput.value = finalAmount.toFixed(2);
+        amountInput.value = finalAmount.toFixed(2);
+
+        // Sync the discount inputs
+        if (discountAmount > 0) {
+            const calculatedPercentage = (discountAmount / invoiceBalance) * 100;
+            discountPercentageInput.value = calculatedPercentage.toFixed(2);
+        } else if (discountPercentage > 0) {
+            const calculatedAmount = (discountPercentage / 100) * invoiceBalance;
+            discountAmountInput.value = calculatedAmount.toFixed(2);
+        }
+    }
+
+    // Event listeners for discount inputs
+    discountAmountInput.addEventListener('input', function() {
+        discountPercentageInput.value = '';
+        calculateFinalAmount();
+    });
+
+    discountPercentageInput.addEventListener('input', function() {
+        discountAmountInput.value = '';
+        calculateFinalAmount();
+    });
+
+    // Also recalculate when payment amount is manually changed
+    amountInput.addEventListener('input', function() {
+        const manualAmount = parseFloat(amountInput.value) || 0;
+        if (manualAmount > 0) {
+            const discount = invoiceBalance - manualAmount;
+            discountAmountInput.value = discount.toFixed(2);
+            discountPercentageInput.value = ((discount / invoiceBalance) * 100).toFixed(2);
+            finalAmountInput.value = manualAmount.toFixed(2);
+        }
+    });
+
+    // Form submission validation
+    document.getElementById('payment-form').addEventListener('submit', function(e) {
+        const finalAmount = parseFloat(finalAmountInput.value) || 0;
+
+        if (finalAmount <= 0) {
+            e.preventDefault();
+            alert('Payment amount must be greater than zero.');
+            return false;
+        }
+
+        if (finalAmount > invoiceBalance) {
+            e.preventDefault();
+            alert('Payment amount cannot exceed invoice balance.');
+            return false;
+        }
+    });
+
+    // Initialize calculation
+    calculateFinalAmount();
+});
+</script>
+
+<style>
+.form-control[readonly] {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    color: #495057;
+}
+
+#final_amount {
+    font-size: 1.1em;
+    color: #28a745;
+    border: 2px solid #28a745;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Lead Source{% endblock %}
+
+{% block content %}
+<h1>Confirm Deletion</h1>
+
+<p>Are you sure you want to delete "{{ object }}"?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Yes, delete</button>
+    <a href="{% url 'branch-list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

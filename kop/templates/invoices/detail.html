@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3>Invoice #{{ invoice.invoice_number }}</h3>
+        <div>
+            {% if invoice.status != 'paid' and not request.user.doctor_profile %}
+                <a href="{% url 'create_payment' invoice_id=invoice.id %}" class="btn btn-success btn-sm">
+                    <i class="fas fa-money-bill-wave"></i> Record Payment
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h5>Patient Information</h5>
+                <p><strong>Name:</strong> {{ invoice.patient }}</p>
+                <p><strong>Branch:</strong> {{ invoice.patient.branch }}</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <p><strong>Invoice Date:</strong> {{ invoice.invoice_date|date:"d M Y" }}</p>
+                <p><strong>Due Date:</strong> {{ invoice.due_date|date:"d M Y" }}</p>
+                <p><strong>Status:</strong>
+                    <span class="badge bg-{% if invoice.status == 'paid' %}success{% elif invoice.status == 'overdue' %}danger{% elif invoice.status == 'sent' %}warning{% else %}secondary{% endif %}">
+                        {{ invoice.get_status_display }}
+                    </span>
+                </p>
+              <p><strong>Balance:</strong> {{ invoice.balance }}</p>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h5>Invoice Details</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                {% if invoice.consultation %}
+                                <th>Date</th>
+                                {% else %}
+                                <th>Duration</th>
+                                {% endif %}
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if invoice.consultation %}
+                            <tr>
+                                <td>{{ invoice.consultation.get_consultation_type_display }} Consultation</td>
+                                <td>{{ invoice.consultation.date|date:"d M Y" }}</td>
+                                <td>₹{{ invoice.total_cost }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td>{{ invoice.treatment.treatment_program.name }} Treatment</td>
+                                <td>{{ invoice.treatment.total_sessions }}</td>
+                                <td>₹{{ invoice.total_cost }}</td>
+                            </tr>
+                            {% endif %}
+
+                            <tr class="table-active">
+                                <td colspan="2" class="text-end"><strong>Total</strong></td>
+                                <td><strong>₹{{ invoice.total_cost }}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {% if invoice.notes %}
+        <div class="row">
+            <div class="col-md-12">
+                <h5>Notes</h5>
+                <p>{{ invoice.notes }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card-footer">
+        <small class="text-muted">
+            Created on {{ invoice.created_at|date:"d M Y H:i" }}
+            {% if invoice.updated_at != invoice.created_at %}
+                | Last updated on {{ invoice.updated_at|date:"d M Y H:i" }}
+            {% endif %}
+        </small>
+    </div>
+</div>
+{% endblock %}

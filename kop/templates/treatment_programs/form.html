@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h4>{% if form.instance.id %}Edit{% else %}Create{% endif %} Treatment Program</h4>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.name.id_for_label }}" class="form-label">Name</label>
+                    {{ form.name }}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ form.rate_per_session.id_for_label }}" class="form-label">Rate/Session</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        {{ form.rate_per_session }}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ form.default_duration.id_for_label }}" class="form-label">Duration (days)</label>
+                    {{ form.default_duration }}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.branch.id_for_label }}" class="form-label">Branch</label>
+                    {{ form.branch }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Available Doctors</label>
+                    <div id="doctor-selection" class="border p-2" style="max-height: 200px; overflow-y: auto;">
+                        {% for doctor in form.doctors %}
+                        <div class="form-check">
+                            {{ doctor }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <a href="{% url 'treatment-program-list' %}" class="btn btn-secondary me-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

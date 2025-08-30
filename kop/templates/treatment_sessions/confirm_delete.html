@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h4>Confirm Delete</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <p>Are you sure you want to delete the session for <strong>{{ object.patient }}</strong> on {{ object.date|date:"d M Y" }}?</p>
+                <p class="text-muted"><small>This action cannot be undone.</small></p>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <a href="{% url 'session-detail' object.id %}" class="btn btn-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

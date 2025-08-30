@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Doctor Schedule</h2>
+        <a href="{% url 'doctor-list' %}" class="btn btn-outline-secondary">Back to Doctors</a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Weekly Availability for Dr. {{ doctor.user.name }}</h4>
+        </div>
+        <div class="card-body">
+            <div id="scheduleContainer">
+                <!-- Schedule will be loaded here -->
+                <div class="text-center my-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const doctorId = {{ doctor.id }};
+    const scheduleContainer = document.getElementById('scheduleContainer');
+
+    // Fetch existing schedule
+    fetch(`/api/availability/by-doctor/${doctorId}/`)
+        .then(response => response.json())
+        .then(data => {
+            renderScheduleForm(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            scheduleContainer.innerHTML = `
+                <div class="alert alert-danger">
+                    Error loading schedule. Please try again.
+                </div>
+            `;
+        });
+
+    function renderScheduleForm(availabilities) {
+        const days = [
+            {value: 'mon', label: 'Monday'},
+            {value: 'tue', label: 'Tuesday'},
+            {value: 'wed', label: 'Wednesday'},
+            {value: 'thu', label: 'Thursday'},
+            {value: 'fri', label: 'Friday'},
+            {value: 'sat', label: 'Saturday'},
+            {value: 'sun', label: 'Sunday'}
+        ];
+
+        let formHTML = `
+            <form id="scheduleForm">
+                <input type="hidden" name="doctor" value="${doctorId}">
+                <div class="mb-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="copySettingsBtn">
+                        <i class="bi bi-files"></i> Copy to Other Days
+                    </button>
+                    <div id="copySettingsPanel" class="mt-2 p-3 border rounded" style="display: none;">
+                        <div class="mb-2">Select days to copy to:</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            ${days.map(day => `
+                                <div class="form-check">
+                                    <input class="form-check-input copy-day-checkbox"
+                                           type="checkbox"
+                                           value="${day.value}"
+                                           id="copy_${day.value}">
+                                    <label class="form-check-label" for="copy_${day.value}">
+                                        ${day.label}
+                                    </label>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-sm btn-primary" id="applyCopyBtn">
+                                Apply Copy
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="cancelCopyBtn">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Available</th>
+                            <th>Login Time</th>
+                            <th>Logout Time</th>
+                            <th>Break Start</th>
+                            <th>Break End</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        days.forEach(day => {
+            const availability = availabilities.find(a => a.day === day.value) || {
+                day: day.value,
+                is_available: false,
+                login_time: '',
+                logout_time: '',
+                break_start_time: '',
+                break_end_time: ''
+            };
+
+            formHTML += `
+                <tr>
+                    <td>${day.label}</td>
+                    <td>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input availability-toggle"
+                                   type="checkbox"
+                                   name="${day.value}_available"
+                                   ${availability.is_available ? 'checked' : ''}
+                                   data-day="${day.value}">
+                        </div>
+                    </td>
+                    <td>
+                        <input type="time" class="form-control time-input"
+                               name="${day.value}_login"
+                               value="${availability.login_time || ''}"
+                               ${!availability.is_available ? 'disabled' : ''}
+                               data-day="${day.value}">
+                    </td>
+                    <td>
+                        <input type="time" class="form-control time-input"
+                               name="${day.value}_logout"
+                               value="${availability.logout_time || ''}"
+                               ${!availability.is_available ? 'disabled' : ''}
+                               data-day="${day.value}">
+                    </td>
+                    <td>
+                        <input type="time" class="form-control time-input"
+                               name="${day.value}_break_start"
+                               value="${availability.break_start_time || ''}"
+                               ${!availability.is_available ? 'disabled' : ''}
+                               data-day="${day.value}">
+                    </td>
+                    <td>
+                        <input type="time" class="form-control time-input"
+                               name="${day.value}_break_end"
+                               value="${availability.break_end_time || ''}"
+                               ${!availability.is_available ? 'disabled' : ''}
+                               data-day="${day.value}">
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-secondary copy-from-day"
+                                data-day="${day.value}">
+                            <i class="bi bi-arrow-right"></i> Copy
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        formHTML += `
+                    </tbody>
+                </table>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-primary">Save Schedule</button>
+                </div>
+            </form>
+        `;
+
+        scheduleContainer.innerHTML = formHTML;
+
+        // Add event listeners for availability toggles
+        document.querySelectorAll('.availability-toggle').forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const day = this.dataset.day;
+                const inputs = document.querySelectorAll(`.time-input[data-day="${day}"]`);
+                inputs.forEach(input => {
+                    input.disabled = !this.checked;
+                    if (!this.checked) {
+                        input.value = ''; // Clear the field when disabled
+                    }
+                });
+            });
+        });
+
+        // Add event listeners for copy buttons
+        document.querySelectorAll('.copy-from-day').forEach(button => {
+            button.addEventListener('click', function() {
+                const sourceDay = this.dataset.day;
+                showCopyPanel(sourceDay);
+            });
+        });
+
+        // Copy settings panel controls
+        document.getElementById('copySettingsBtn').addEventListener('click', function() {
+            const panel = document.getElementById('copySettingsPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.getElementById('cancelCopyBtn').addEventListener('click', function() {
+            document.getElementById('copySettingsPanel').style.display = 'none';
+        });
+
+        document.getElementById('applyCopyBtn').addEventListener('click', function() {
+            applyCopySettings();
+            document.getElementById('copySettingsPanel').style.display = 'none';
+        });
+
+        // Form submission
+        document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveSchedule();
+        });
+    }
+
+    let currentSourceDay = null;
+
+    function showCopyPanel(sourceDay) {
+        currentSourceDay = sourceDay;
+        const panel = document.getElementById('copySettingsPanel');
+
+        // Uncheck all checkboxes first
+        document.querySelectorAll('.copy-day-checkbox').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+
+        // Don't allow copying to the same day
+        document.getElementById(`copy_${sourceDay}`).disabled = true;
+
+        panel.style.display = 'block';
+    }
+
+    function applyCopySettings() {
+        if (!currentSourceDay) return;
+
+        // Get source values
+        const sourceAvailable = document.querySelector(`input[name="${currentSourceDay}_available"]`).checked;
+        const sourceLogin = document.querySelector(`input[name="${currentSourceDay}_login"]`).value;
+        const sourceLogout = document.querySelector(`input[name="${currentSourceDay}_logout"]`).value;
+        const sourceBreakStart = document.querySelector(`input[name="${currentSourceDay}_break_start"]`).value;
+        const sourceBreakEnd = document.querySelector(`input[name="${currentSourceDay}_break_end"]`).value;
+
+        // Apply to selected days
+        document.querySelectorAll('.copy-day-checkbox:checked').forEach(checkbox => {
+            const targetDay = checkbox.value;
+
+            // Set availability
+            const availableCheckbox = document.querySelector(`input[name="${targetDay}_available"]`);
+            availableCheckbox.checked = sourceAvailable;
+
+            // Trigger change event to enable/disable time inputs
+            availableCheckbox.dispatchEvent(new Event('change'));
+
+            // Set time values
+            if (sourceAvailable) {
+                document.querySelector(`input[name="${targetDay}_login"]`).value = sourceLogin;
+                document.querySelector(`input[name="${targetDay}_logout"]`).value = sourceLogout;
+                document.querySelector(`input[name="${targetDay}_break_start"]`).value = sourceBreakStart;
+                document.querySelector(`input[name="${targetDay}_break_end"]`).value = sourceBreakEnd;
+            }
+        });
+    }
+
+    function saveSchedule() {
+        const form = document.getElementById('scheduleForm');
+        const formData = new FormData(form);
+        const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+        const scheduleData = [];
+
+        days.forEach(day => {
+            const isAvailable = formData.get(`${day}_available`) === 'on';
+            scheduleData.push({
+                day: day,
+                is_available: isAvailable,
+                login_time: isAvailable ? formData.get(`${day}_login`) : null,
+                logout_time: isAvailable ? formData.get(`${day}_logout`) : null,
+                break_start_time: isAvailable ? formData.get(`${day}_break_start`) : null,
+                break_end_time: isAvailable ? formData.get(`${day}_break_end`) : null,
+                doctor: doctorId
+            });
+        });
+
+        console.log(JSON.stringify(scheduleData));
+
+        fetch('/api/availability/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(scheduleData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert('Schedule saved successfully!');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error saving schedule. Please try again.');
+        });
+    }
+
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %}

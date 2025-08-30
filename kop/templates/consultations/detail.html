@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{{ form.media }}  <!-- This loads the required JS/CSS for DAL -->
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3>Consultation Details</h3>
+        <div>
+            {% if object.status != 'completed' %}
+            <a href="{% url 'consultation-update' object.pk %}" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+
+            <a href="{% url 'consultation-delete' object.pk %}" class="btn btn-danger btn-sm">
+                <i class="fas fa-trash"></i> Delete
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card-body">
+        <!-- Basic Information Section -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h5 class="section-header">Patient Information</h5>
+                <div class="detail-item">
+                    <span class="detail-label">Patient:</span>
+                    <span class="detail-value">{{ object.patient }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Consultation Type:</span>
+                    <span class="detail-value">{{ object.get_consultation_type_display }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Status:</span>
+                    <span class="badge bg-{% if object.status == 'completed' %}success{% elif object.status == 'cancelled' %}danger{% else %}info{% endif %}">
+                        {{ object.get_status_display }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <h5 class="section-header">Appointment Details</h5>
+                <div class="detail-item">
+                    <span class="detail-label">Date:</span>
+                    <span class="detail-value">{{ object.date }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Time:</span>
+                    <span class="detail-value">{{ object.start_time|time:"H:i" }} - {{ object.end_time|time:"H:i" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Doctor:</span>
+                    <span class="detail-value">Dr. {{ object.doctor }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medical Information Section -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h5 class="section-header">Medical Information</h5>
+                <div class="row">
+                    <div class="col-md-2 detail-item">
+                        <span class="detail-label">Height:</span>
+                        <span class="detail-value">{{ object.height|default:"-" }} cm</span>
+                    </div>
+                    <div class="col-md-2 detail-item">
+                        <span class="detail-label">Weight:</span>
+                        <span class="detail-value">{{ object.weight|default:"-" }} kg</span>
+                    </div>
+                    <div class="col-md-2 detail-item">
+                        <span class="detail-label">BP:</span>
+                        <span class="detail-value">{{ object.blood_pressure|default:"-" }}</span>
+                    </div>
+                    <div class="col-md-2 detail-item">
+                        <span class="detail-label">Pulse:</span>
+                        <span class="detail-value">{{ object.pulse|default:"-" }} bpm</span>
+                    </div>
+                    <div class="col-md-2 detail-item">
+                        <span class="detail-label">SpO2:</span>
+                        <span class="detail-value">{{ object.oxygen_saturation|default:"-" }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clinical Notes Section -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h5 class="section-header">Clinical Notes</h5>
+                <div class="detail-item">
+                    <span class="detail-label">Chief Complaint:</span>
+                    <p class="detail-value">{{ object.chief_complaint|default:"None recorded"|linebreaks }}</p>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Notes:</span>
+                    <p class="detail-value">{{ object.notes|default:"None recorded"|linebreaks }}</p>
+                </div>
+                <div class="detail-item">
+                      <span class="detail-label">Primary Diagnosis:</span>
+                      <p class="detail-value">{{ object.primary_diagnosis|default:"None recorded"|linebreaks }}</p>
+                  </div>
+                <div class="detail-item">
+                      <span class="detail-label">Secondary Diagnosis:</span>
+                      <p class="detail-value">{{ object.secondary_diagnosis|default:"None recorded"|linebreaks }}</p>
+                  </div>
+            </div>
+        </div>
+
+        <!-- Follow-up Section -->
+        {% if object.follow_up_date %}
+        <div class="row">
+            <div class="col-md-12">
+                <h5 class="section-header">Follow-up</h5>
+                <div class="detail-item">
+                    <span class="detail-label">Next Appointment:</span>
+                    <span class="detail-value">{{ object.follow_up_date }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<style>
+    .section-header {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 8px;
+        margin-bottom: 15px;
+        color: #0d6efd;
+    }
+    .detail-item {
+        margin-bottom: 10px;
+    }
+    .detail-label {
+        font-weight: 600;
+        color: #6c757d;
+        display: inline-block;
+        width: 150px;
+    }
+    .detail-value {
+        color: #212529;
+    }
+</style>
+<script>
+
+$(document).ready(function() {
+    $('#id_patient').select2({
+        ajax: {
+            url: '/patient-autocomplete/',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term, // search term
+                    page: params.page
+                };
+            },
+            processResults: function (data, params) {
+                return {
+                    results: data.results
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 2,
+        placeholder: "Search for a patient..."
+    });
+});
+</script>
+
+{% endblock %}
