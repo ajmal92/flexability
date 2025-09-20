@@ -80,9 +80,6 @@ def doctor_dashboard(request):
             treatment_doctor=doctor,
             date=today
         ).order_by('start_time'),
-        'recent_sessions': TreatmentSession.objects.filter(
-            treatment_doctor=doctor
-        ).order_by('-date', '-start_time')[:5],
         'today': today,
         'todays_consultations': PatientConsultation.objects.filter(
             doctor=doctor,

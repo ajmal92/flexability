@@ -210,46 +210,6 @@
     </div>
 
     <!-- Recent Activity Section -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h5>
-                </div>
-                <div class="card-body">
-                    <div class="timeline">
-                        {% for session in recent_sessions %}
-                        <div class="timeline-item">
-                            <div class="timeline-badge
-                                {% if session.status == 'completed' %}bg-success
-                                {% elif session.status == 'cancelled' %}bg-danger
-                                {% else %}bg-info{% endif %}">
-                                <i class="fas fa-{% if session.status == 'completed' %}check
-                                    {% elif session.status == 'cancelled' %}times
-                                    {% else %}calendar{% endif %}"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <strong>{{ session.treatment.patient }}</strong>
-                                        <span class="text-muted ms-2">{{ session.get_status_display }}</span>
-                                    </div>
-                                    <small class="text-muted">{{ session.date }} | {{ session.start_time|time:"H:i" }}</small>
-                                </div>
-                                <p class="mb-0 small text-muted">
-                                    {{ session.treatment.treatment_type }} session
-                                    {% if session.assessment_notes %}- {{ session.assessment_notes|truncatechars:60 }}{% endif %}
-                                </p>
-                            </div>
-                        </div>
-                        {% empty %}
-                        <p class="text-center text-muted">No recent activity</p>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Modal Structure -->

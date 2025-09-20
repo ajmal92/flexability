@@ -159,14 +159,14 @@
                                 <tr class="{% if treatment.pending_sessions < 3 %}table-danger{% elif treatment.pending_sessions < 5 %}table-warning{% else %}table-info{% endif %}">
                                     <td>{{ treatment.patient }}</td>
                                     <td>{{ treatment.treatment_program.name }}</td>
-                                    <td>Dr. {{ treatment.doctor.user.get_full_name }}</td>
+                                    <td>Dr. {{ treatment.doctor }}</td>
                                     <td class="text-center">
                                         <span class="badge bg-{% if treatment.pending_sessions < 3 %}danger{% elif treatment.pending_sessions < 5 %}warning{% else %}info{% endif %}">
                                             {{ treatment.pending_sessions }} sessions
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="{% url 'treatment-detail' treatment.id %}" class="btn btn-sm btn-outline-primary">
+                                        <a href="{% url 'patient-treatment-detail' treatment.id %}" class="btn btn-sm btn-outline-primary">
                                             View
                                         </a>
                                     </td>
@@ -207,7 +207,7 @@
                                 <tr>
                                     <td>{{ appointment.time|time:"H:i" }}</td>
                                     <td>{{ appointment.patient }}</td>
-                                    <td>Dr. {{ appointment.doctor.user.get_full_name }}</td>
+                                    <td>Dr. {{ appointment.doctor }}</td>
                                     <td>
                                         <span class="badge bg-{% if appointment.status == 'completed' %}success{% elif appointment.status == 'cancelled' %}danger{% else %}warning{% endif %}">
                                             {{ appointment.get_status_display }}
@@ -244,21 +244,16 @@
                                 <tr>
                                     <th>Patient</th>
                                     <th>Treatment</th>
-                                    <th>Sessions</th>
                                     <th>Date</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for treatment in recent_treatments %}
                                 <tr>
-                                    <td>{{ treatment.patient }}</td>
-                                    <td>{{ treatment.treatment_program.name }}</td>
-                                    <td class="text-center">
-                                        <span class="badge bg-info">
-                                            {{ treatment.sessions_completed }}/{{ treatment.total_sessions }}
-                                        </span>
-                                    </td>
-                                    <td>{{ treatment.start_date|date:"M d, Y" }}</td>
+                                    <td>{{ treatment.treatment_doctor }}</td>
+                                    <td>{{ treatment.treatment }}</td>
+
+                                    <td>{{ treatment.date|date:"M d, Y" }}</td>
                                 </tr>
                                 {% empty %}
                                 <tr>

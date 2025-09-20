@@ -290,7 +290,7 @@ from django.core.validators import MinValueValidator
 
 class PatientTreatment(models.Model):
     STATUS_CHOICES = [
-        ('assigned', 'Assigned'),
+        ('prescribed', 'Prescribed'),
         ('ongoing', 'Ongoing'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
@@ -338,17 +338,19 @@ class PatientTreatment(models.Model):
         return len(Invoice.objects.filter(patient=self.patient, treatment=self)) > 0
 
     def save(self, *args, **kwargs):
+        from django.contrib import messages
+
         # First save the treatment to ensure we have an ID
         is_new = self._state.adding  # Check if this is a new instance
         super().save(*args, **kwargs)
 
         # Create invoice only for new treatments or when status changes to completed
-        if not is_new and (self.status not in ['assigned', 'completed',
+        if not is_new and (self.status not in ['prescribed', 'completed',
                                                'cancelled']) and not self.is_invoice_already_present_for_treatment:
             try:
                 # Check if invoice already exists
                 if not hasattr(self, 'invoice'):
-                    Invoice.objects.create(
+                    invoice = Invoice.objects.create(
                         patient=self.patient,
                         treatment=self,
                         invoice_date=timezone.now().date(),
@@ -358,6 +360,8 @@ class PatientTreatment(models.Model):
                         total=self.total_cost,
                         balance=self.total_cost
                     )
+                    messages.success(self.request, f"Invoice #{invoice.id} created successfully!")
+
             except Exception as e:
                 # Log the error but don't prevent the treatment from saving
                 import logging
@@ -391,7 +395,7 @@ class TreatmentSession(models.Model):
         verbose_name_plural = 'Treatment Sessions'
 
     def __str__(self):
-        return f"{self.patient} on {self.date}"
+        return f"{self.treatment} on {self.date}"
 
     def clean(self):
 
@@ -587,27 +591,6 @@ class PatientConsultation(AuditModelMixin):
     def __str__(self):
         return f"{self.patient} - {self.date} ({self.consultation_type})"
 
-    def save(self, *args, **kwargs):
-        # Check if this is an existing instance being updated
-        if self.pk is not None:
-            try:
-                # Get the old instance from database
-                old_instance = PatientConsultation.objects.get(pk=self.pk)
-                # Check if status is being changed to 'completed'
-                if self.status == 'completed' and old_instance.status != 'completed':
-                    try:
-                        Invoice.create_for_consultation(self)
-                        # You might want to add logging here
-                    except ValueError as e:
-                        # Log error if invoice creation fails
-                        from django.core.exceptions import ValidationError
-                        raise ValidationError(f"Invoice creation failed: {str(e)}")
-            except PatientConsultation.DoesNotExist:
-                pass
-
-        # Call the parent class's save method
-        super().save(*args, **kwargs)
-
 
 class Invoice(AuditModelMixin):
     INVOICE_STATUS = [
@@ -661,8 +644,8 @@ class Invoice(AuditModelMixin):
     @classmethod
     def create_for_consultation(cls, consultation):
         """Helper method to create invoice for a consultation"""
-        if consultation.status != 'completed':
-            raise ValueError("Can only create invoices for completed consultations")
+        if consultation.status != 'scheduled':
+            raise ValueError("Can only create invoices for scheduled consultations")
 
         if hasattr(consultation, 'invoice'):
             raise ValueError("Invoice already exists for this consultation")

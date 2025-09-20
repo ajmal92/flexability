@@ -7,16 +7,13 @@ from django.db import models
 
 def get_expiring_treatments(branch):
     """Get treatments with less than 7 pending sessions"""
-    today = timezone.now().date()
-    return PatientTreatment.objects.filter(
+    expiring_treatments =  PatientTreatment.objects.filter(
         patient__branch=branch,
         status='ongoing',
         is_active=True
-    ).annotate(
-        pending_sessions=models.F('total_sessions') - models.F('sessions_completed')
-    ).filter(
-        pending_sessions__lt=7
     )
+    return [t for t in expiring_treatments if t.pending_sessions < 7]
+
 
 
 def get_active_patients_count(branch):
@@ -42,7 +39,6 @@ def get_today_treatments_count(branch):
     return TreatmentSession.objects.filter(
         treatment_doctor__branch=branch,
         date=today,
-        status='ongoing',
     ).count()
 
 
@@ -56,9 +52,10 @@ def get_dashboard_stats(branch):
     """Get all dashboard statistics for a branch"""
     return {
         'expiring_treatments': get_expiring_treatments(branch),
-        'expiring_treatments_count': get_expiring_treatments(branch).count(),
+        'expiring_treatments_count': len(get_expiring_treatments(branch)),
         'active_patients_count': get_active_patients_count(branch),
         'today_appointments_count': get_today_appointments_count(branch),
         'today_treatments_count': get_today_treatments_count(branch),
         'converted_leads_today': get_converted_leads_today(branch),
+        'recent_treatments': get_converted_leads_today(branch),
     }

@@ -2,7 +2,7 @@ from django.views.generic import CreateView, UpdateView, DeleteView, ListView, D
 from django.urls import reverse_lazy
 
 from kop.decorators import branch_admin_or_superadmin_required
-from kop.models import PatientConsultation, Branch
+from kop.models import PatientConsultation, Branch, Invoice
 from kop.forms.consultation import PatientConsultationForm, PatientConsultationUpdateForm
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
@@ -21,10 +21,38 @@ class PatientConsultationCreateView(CreateView):
         # Auto-populate from URL parameters
         kwargs['patient_id'] = self.kwargs.get('patient_id')
         kwargs['consultation_type'] = self.request.GET.get('type', 'initial')
+        kwargs['user'] = self.request.user
         return kwargs
 
     def get_success_url(self):
         return reverse_lazy('patient-detail', kwargs={'pk': self.object.patient.id})
+
+    def form_valid(self, form):
+        from django.contrib import messages
+        from django.utils.safestring import mark_safe
+        from django.urls import reverse
+
+        response = super().form_valid(form)
+
+        if self.object.status == 'scheduled':
+            try:
+                invoice = Invoice.create_for_consultation(self.object)
+                messages.success(
+                    self.request,
+                    mark_safe(
+                        f'Invoice <a href="{reverse("invoice-detail", kwargs={"pk": invoice.pk})}" '
+                        f'class="alert-link">#{invoice.invoice_number}</a> created successfully for '
+                        f'{self.object.patient}\'s consultation!'
+                    )
+                )
+
+            except Exception as e:
+                messages.error(
+                    self.request,
+                    f"Consultation created but invoice creation failed: {str(e)}"
+                )
+
+        return response
 
 
 @method_decorator(login_required, name='dispatch')

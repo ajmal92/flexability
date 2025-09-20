@@ -105,6 +105,69 @@
 </head>
 
 <body>
+{% if messages %}
+<div class="position-fixed bottom-0 start-0 w-100 p-2 p-md-3" style="z-index: 1055;">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                {% for message in messages %}
+                <div class="toast bg-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} text-white border-0 w-100 mb-2 shadow"
+                     role="alert" aria-live="assertive" aria-atomic="true"
+                     data-bs-autohide="true" data-bs-delay="5000">
+                    <div class="d-flex align-items-center p-3">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="fas
+                                {% if message.tags == 'success' %}fa-check-circle
+                                {% elif message.tags == 'error' %}fa-exclamation-circle
+                                {% elif message.tags == 'warning' %}fa-exclamation-triangle
+                                {% else %}fa-info-circle{% endif %} fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold mb-1">{{ message.tags|title }}</div>
+                            <div class="small">{{ message|safe }}</div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white ms-3 flex-shrink-0"
+                                data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+        var toastList = toastElList.map(function(toastEl) {
+            return new bootstrap.Toast(toastEl);
+        });
+        toastList.forEach(toast => toast.show());
+    });
+</script>
+
+<style>
+    @media (max-width: 768px) {
+        .toast {
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .toast i.fas {
+            font-size: 1.5rem;
+        }
+
+        .toast .fw-bold {
+            font-size: 0.9rem;
+        }
+
+        .toast .small {
+            font-size: 0.8rem;
+        }
+    }
+</style>
+{% endif %}
+
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-brand sticky-top">
         <div class="container">

@@ -81,7 +81,7 @@ def add_patient(request):
         form = PatientForm(request.POST, user=request.user)
         if form.is_valid():
             patient = form.save()
-            return redirect('patient-list')
+            return redirect('patient-detail', pk=patient.id)
     else:
         form = PatientForm(user=request.user)
 

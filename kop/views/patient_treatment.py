@@ -84,5 +84,4 @@ class PatientTreatmentDetailView(DetailView):
         return context
 
 
-from django.http import JsonResponse
 from kop.models import PatientTreatment, Patient

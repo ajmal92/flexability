@@ -39,10 +39,22 @@ class PatientForm(forms.ModelForm):
         if self.user and hasattr(self.user, 'branch_admin'):
             branch = self.user.branch_admin.branch
             self.fields['branch'].initial = branch
+
             # For existing instances, don't change the branch field behavior
             if not self.instance.pk:
+                # Use readonly instead of disabled to allow value submission
                 self.fields['branch'].widget.attrs['readonly'] = True
-                self.fields['branch'].widget.attrs['disabled'] = True
+                self.fields['branch'].widget.attrs['class'] = 'form-control readonly-field'
+                # Set the queryset to only include their branch
+                self.fields['branch'].queryset = Branch.objects.filter(id=branch.id)
+
+        # if self.user and hasattr(self.user, 'branch_admin'):
+        #     branch = self.user.branch_admin.branch
+        #     self.fields['branch'].initial = branch
+        #     # For existing instances, don't change the branch field behavior
+        #     if not self.instance.pk:
+        #         self.fields['branch'].widget.attrs['readonly'] = True
+        #         self.fields['branch'].widget.attrs['disabled'] = True
 
             # For superadmins, show all branches
         elif self.user and self.user.is_superuser:
