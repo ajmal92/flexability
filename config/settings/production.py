@@ -1,9 +1,16 @@
 # ruff: noqa: E501
 from .base import *  # noqa: F403
-from .base import DATABASES
+# from .base import DATABASES
 from .base import INSTALLED_APPS
 from .base import REDIS_URL
 from .base import env
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": "db.sqlite3",
+    }
+}
 
 # GENERAL
 # ------------------------------------------------------------------------------
