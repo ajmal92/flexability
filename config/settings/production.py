@@ -6,6 +6,15 @@ from .base import REDIS_URL
 from .base import env
 import os
 import dj_database_url
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn=env.str('SENTRY_DSN'),
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+)
+
 
 
 DATABASES = {
