@@ -7,20 +7,22 @@
         <div class="card">
             <div class="card-header">
                 <h3>Patient Information</h3>
-                <a href="{% url 'patient-weekly-schedule-list' patient_id=patient.id %}"
-                   class="btn btn-sm btn-primary">
-                    <i class="fas fa-calendar-alt"></i> View Schedules
-                </a>
-                {% if request.user.is_superuser or request.user.branch_admin %}
-                <a href="{% url 'consultation-create' patient.id %}?type=initial"
-                   class="btn btn-success btn-sm">
-                    <i class="fas fa-plus"></i> New Consultation
-                </a>
-                {% endif %}
-                <a href="{% url 'patient-treatment-create' patient.id %}?type=initial"
-                   class="btn btn-success btn-sm">
-                    <i class="fas fa-plus"></i> Assign Treatment Plan
-                </a>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    <a href="{% url 'patient-weekly-schedule-list' patient_id=patient.id %}"
+                       class="btn btn-sm btn-primary">
+                        <i class="fas fa-calendar-alt"></i> View Schedules
+                    </a>
+                    {% if request.user.is_superuser or request.user.branch_admin %}
+                    <a href="{% url 'consultation-create' patient.id %}?type=initial"
+                       class="btn btn-success btn-sm">
+                        <i class="fas fa-plus"></i> New Consultation
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'patient-treatment-create' patient.id %}?type=initial"
+                       class="btn btn-success btn-sm">
+                        <i class="fas fa-plus"></i> Assign Treatment Plan
+                    </a>
+                </div>
             </div>
             <div class="card-body">
                 <p><strong>{{ patient.first_name }} {{ patient.last_name }}</strong></p>
@@ -57,7 +59,6 @@
         <div class="card mb-3">
             <div class="card-header">
                 <h3>Invoices</h3>
-
             </div>
             <div class="card-body">
                 {% if invoices %}
@@ -116,7 +117,7 @@
                 <h3>Attachments</h3>
                 {% if not request.user.doctor_profile %}
                 <a href="{% url 'add_patient_attachment' patient_id=patient.id %}"
-                   class="btn btn-sm btn-primary">
+                   class="btn btn-sm btn-primary mt-2">
                     <i class="fas fa-upload"></i> Upload Attachments
                 </a>
                 {% endif %}
@@ -145,4 +146,40 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Custom spacing for mobile devices */
+    @media (max-width: 768px) {
+        .card-header .d-flex {
+            gap: 8px !important;
+        }
+
+        .card-header .btn {
+            margin-bottom: 5px;
+        }
+
+        /* Ensure buttons stack nicely on very small screens */
+        @media (max-width: 480px) {
+            .card-header .d-flex {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .card-header .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    }
+
+    /* Style for attachment action buttons */
+    .attachment-actions {
+        float: right;
+    }
+
+    .attachment-actions .btn {
+        margin-left: 5px;
+    }
+</style>
+
 {% endblock %}
