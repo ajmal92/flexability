@@ -4,6 +4,9 @@ from .base import *  # noqa: F403
 from .base import INSTALLED_APPS
 from .base import REDIS_URL
 from .base import env
+import os
+import dj_database_url
+
 
 DATABASES = {
     "default": {
@@ -20,6 +23,14 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["example.com"])
 
 # DATABASES
+
+if os.getenv('DATABASE_URL'):
+    print('taking postgres setting')
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=600,
+        ssl_require=not DEBUG
+    )
+
 # ------------------------------------------------------------------------------
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
 
