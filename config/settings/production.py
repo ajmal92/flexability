@@ -9,10 +9,10 @@ import dj_database_url
 
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "db.sqlite3",
-    }
+    "default": dj_database_url.config(
+        conn_max_age=600,
+        ssl_require=not DEBUG
+    )
 }
 
 # GENERAL
@@ -22,14 +22,7 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["example.com"])
 
-# DATABASES
 
-if os.getenv('DATABASE_URL'):
-    print('taking postgres setting')
-    DATABASES['default'] = dj_database_url.config(
-        conn_max_age=600,
-        ssl_require=not DEBUG
-    )
 
 # ------------------------------------------------------------------------------
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
