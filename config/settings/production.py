@@ -24,6 +24,7 @@ DATABASES = {
     )
 }
 
+DEBUG=False
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
