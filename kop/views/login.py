@@ -15,7 +15,7 @@ def login_redirect(request):
         elif hasattr(request.user, 'branch_admin'):
             return redirect('branch_admin_dashboard')
         elif request.user.is_superuser or request.user.is_staff:
-            return redirect('admin_dashboard')
+            return redirect('doctor_dashboard')
         else:
             # Default redirect for users without specific profiles
             return redirect('home')
