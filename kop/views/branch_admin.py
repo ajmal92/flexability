@@ -61,7 +61,7 @@ class BranchAdminListView(ListView):
 @method_decorator(superadmin_required, name='dispatch')
 class BranchAdminDetailView(DetailView):
     model = BranchAdmin
-    template_name = "branch_admin/detail.html"
+    template_name = "branch_admin/form.html"
     context_object_name = "admin"
 
 
