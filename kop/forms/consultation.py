@@ -52,6 +52,7 @@ class PatientConsultationForm(PatientModelFormMixin):
         # Get initial data from URL or kwargs
         self.patient_id = kwargs.pop('patient_id', None)
         self.consultation_type = kwargs.pop('consultation_type', 'initial')
+        self.user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
 
         # Set initial values
